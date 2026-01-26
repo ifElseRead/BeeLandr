@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BeeLandr | Connect Beekeepers & Land</title>
+
+    <link
+
+  </head>
+  <body class="bg-light">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
+      <div class="container-fluid">
+        <a class="navbar-brand d-flex align-items-center" href="#">
+          <span class="bee-logo me-2">🐝</span> <strong>BeeLandr</strong>
+        </a>
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#navbarNav"
+        >
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav ms-auto">
+            <li class="nav-item">
+              <a class="nav-link active" href="index.html">Find Land</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="404.html">About</a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <main class="container-fluid p-0">
+      <div class="row g-0 vh-100-minus-nav">
+        <aside
+          id="sidebar"
+          class="col-lg-3 col-md-4 bg-dark text-white p-4 shadow-lg order-2 order-md-1"
+        >
+          <h2 class="h4 border-bottom pb-3 border-secondary mb-4">
+            Plot Analysis
+          </h2>
+
+          <div id="plot-info" class="mb-4">
+            <div class="card bg-secondary-subtle text-dark border-0 p-3 mb-3">
+              <p class="mb-1 text-muted small uppercase fw-bold">
+                Current Area
+              </p>
+              <p id="area-display" class="h5 m-0">No plot drawn yet.</p>
+            </div>
+
+            <div class="card bg-secondary-subtle text-dark border-0 p-3">
+              <p class="mb-1 text-muted small uppercase fw-bold">
+                Hive Capacity
+              </p>
+              <p id="hive-display" class="h5 m-0">0 Hives</p>
+            </div>
+          </div>
+
+          <div class="d-grid gap-2">
+            <button id="save-btn" class="btn btn-bee btn-lg">Save Plot</button>
+            <button id="clear-btn" class="btn btn-outline-light btn-sm">
+              Clear Map
+            </button>
+          </div>
+
+          <div
+            id="feedback-msg"
+            class="mt-4 small text-warning"
+            aria-live="polite"
+          ></div>
+        </aside>
+
+        <section
+          id="map-container"
+          class="col-lg-9 col-md-8 order-1 order-md-2"
+        >
+          <div id="map"></div>
+        </section>
+      </div>
+    </main>
+    <div
+      class="modal fade"
+      id="roleModal"
+      data-bs-backdrop="static"
+      data-bs-keyboard="false"
+      tabindex="-1"
+      aria-labelledby="roleModalLabel"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content bg-dark text-white border-warning">
+          <div class="modal-header border-secondary text-center w-100 justify-content-center">
+            <h5 class="modal-title" id="roleModalLabel">Welcome to <strong>BeeLandr</strong> <span class="bee-logo me-2">🐝</span>
+        </a></h5>
+          </div>
+          <div class="modal-body text-center p-5">
+            <p class="mb-4">
+              To personalize your experience, please tell us who you are:
+            </p>
+            <div class="d-grid gap-3">
+              <button
+                type="button"
+                class="btn btn-bee btn-lg"
+                onclick="app.setRole('landowner')"
+              >
+                🌻 I am a Landowner
+              </button>
+              <button
+                type="button"
+                class="btn btn-outline-warning btn-lg"
+                onclick="app.setRole('beekeeper')"
+              >
+                🐝 I am a Beekeeper
+              </button>
+            </div>
+          </div>
+          <div class="modal-footer border-0 justify-content-center">
+            <small class="text-muted"
+              >You can switch roles later in the navigation menu.</small
+            >
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </body>
+</html>
