@@ -1,28 +1,26 @@
-# BeeLandr.com: Interactive Land-Hive Connector
+# --- Project Essentials ---
+# Ensure README is always included (even if you accidentally ignore all .md files)
+README.md
 
-## 🐝 Rationale 
+# --- OS Specific Files ---
+.DS_Store
+.AppleDouble
+.LSOverride
+Thumbs.db
+ehthumbs.db
 
-BeeLandr.com addresses the biodiversity crisis by bridging the gap between land availability and beekeeping expertise. [Detailed explanation of user needs].
+# --- Environment and Secrets ---
+.env
+.env.local
+*.log
 
-## 🎨 UX Design 
+# --- Common Language/Tool Folders ---
+node_modules/
+__pycache__/
+*.py[cod]
+dist/
+build/
+.vscode/
+.idea/
 
-- **Wireframes:** [Link to images in /docs]
-- **Color Palette:** Accessibility-compliant #FBC02D and #333333.
-- **Hierarchy:** Direct access to drawing tools for Landowners.
-
-## 🚀 Features
-
-- **Map Drawing:** Custom Leaflet integration for boundary definition.
-- **Hive Calculator:** OOP-driven logic for hive capacity.
-- **Persistence:** LocalStorage integration for private data.
-
-## 🧪 Testing 
-
-Full testing documentation including manual tables and automated test summaries found in [TESTING.md].
-
-## 🛠️ Deployment 
-
-The project is deployed via GitHub Pages at: [Link]
-
-1. Committed code to main branch.
-2. Settings > Pages > Select Main Branch.
+/stages/*
