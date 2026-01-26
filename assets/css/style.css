@@ -1,0 +1,174 @@
+/* =========================================================
+   Custom CSS Variables
+========================================================= */
+:root {
+  /* Bee theme (default / beekeeper) */
+  --bee-yellow: #fbc02d;
+  --bee-yellow-hover: #f9a825;
+
+  /* Landowner theme */
+  --land-green: #66bb6a;
+  --land-green-hover: #4caf50;
+
+  /* Shared */
+  --bee-black: #1a1a1a;
+  --sidebar-bg: #262626;
+  --text-light: #f8f9fa;
+  --card-accent: rgba(255, 255, 255, 0.05);
+  --modal-dim: rgba(0, 0, 0, 0.85);
+}
+
+/* =========================================================
+   Layout Structure 
+========================================================= */
+html,
+body {
+  height: 100%;
+  margin: 0;
+}
+
+/* IMPORTANT FIX:
+   Do NOT hide vertical overflow on body (breaks navbar alignment)
+*/
+body {
+  overflow-x: hidden;
+}
+
+/* App height minus navbar */
+.vh-100-minus-nav {
+  height: calc(100vh - 56px);
+  overflow: hidden; /* scrolling is constrained here */
+}
+
+/* Ensure navbar contents stay vertically centered */
+.navbar .container-fluid {
+  align-items: center;
+}
+
+/* =========================================================
+   Landowner Role Theme Overrides
+========================================================= */
+body.role-landowner {
+  --bee-yellow: var(--land-green);
+  --bee-yellow-hover: var(--land-green-hover);
+}
+
+body.role-landowner aside#sidebar .card {
+  background-color: rgba(102, 187, 106, 0.08);
+  border-color: rgba(102, 187, 106, 0.25);
+}
+
+/* =========================================================
+   Sidebar Styling (Bootstrap Overrides via Specificity)
+========================================================= */
+aside#sidebar.bg-dark {
+  background-color: var(--sidebar-bg);
+  border-right: 2px solid var(--bee-yellow);
+  display: flex;
+  flex-direction: column;
+}
+
+/* Sidebar Cards */
+aside#sidebar .card {
+  background-color: var(--card-accent);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--text-light);
+}
+
+/* Override Bootstrap .text-muted safely */
+aside#sidebar .card p.text-muted {
+  color: var(--bee-yellow);
+  font-size: 0.75rem;
+  letter-spacing: 1.2px;
+}
+
+/* =========================================================
+   Buttons 
+========================================================= */
+.btn-bee {
+  background-color: var(--bee-yellow);
+  color: var(--bee-black);
+  font-weight: 700;
+  padding: 0.8rem;
+  border: 0;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.btn-bee:hover {
+  background-color: var(--bee-yellow-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(251, 192, 45, 0.3);
+}
+
+/* =========================================================
+   Map & Leaflet Customisation 
+========================================================= */
+#map {
+  height: 100%;
+  width: 100%;
+}
+
+/* Leaflet Draw Toolbar */
+.leaflet-draw-toolbar a {
+  border-bottom: 1px solid #ccc;
+}
+
+/* Polygon tool visual tweak */
+.leaflet-draw-draw-polygon {
+  filter: sepia(1) saturate(5) hue-rotate(10deg);
+}
+
+/* Drawing handles */
+.leaflet-editing-icon {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: var(--bee-yellow);
+  border: 2px solid var(--bee-black);
+}
+
+/* =========================================================
+   Modal Styling & Accessibility 
+======================================================== */
+.modal-backdrop.show {
+  background-color: #000;
+  opacity: 0.85;
+}
+
+.modal-content {
+  border: 1px solid var(--bee-yellow);
+  box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
+}
+
+/* =========================================================
+   Map Container
+========================================================= */
+#map-container {
+  background-color: #000;
+}
+
+/* =========================================================
+   Responsive Adjustments 
+========================================================= */
+@media (max-width: 768px) {
+  body {
+    overflow: auto;
+  }
+
+  .vh-100-minus-nav {
+    height: auto;
+    overflow: visible;
+    flex-direction: column;
+  }
+
+  #map {
+    height: 50vh;
+  }
+
+  aside#sidebar.bg-dark {
+    border-right: 0;
+    border-top: 3px solid var(--bee-yellow);
+  }
+}
