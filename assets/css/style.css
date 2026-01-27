@@ -38,6 +38,8 @@ body {
 .vh-100-minus-nav {
   height: calc(100vh - 56px);
   overflow: hidden; /* scrolling is constrained here */
+  display: flex;
+  flex-wrap: nowrap;
 }
 
 /* Ensure navbar contents stay vertically centered */
@@ -105,9 +107,28 @@ aside#sidebar .card p.text-muted {
 /* =========================================================
    Map & Leaflet Customisation 
 ========================================================= */
+
+/* Ensure columns take full height */
+.row > aside,
+.row > section {
+  height: 100%;
+  overflow: hidden;
+}
+
+#map-container {
+  background-color: #000;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
 #map {
   height: 100%;
   width: 100%;
+  flex: 1;
 }
 
 /* Leaflet Draw Toolbar */
@@ -140,13 +161,6 @@ aside#sidebar .card p.text-muted {
 .modal-content {
   border: 1px solid var(--bee-yellow);
   box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
-}
-
-/* =========================================================
-   Map Container
-========================================================= */
-#map-container {
-  background-color: #000;
 }
 
 /* =========================================================

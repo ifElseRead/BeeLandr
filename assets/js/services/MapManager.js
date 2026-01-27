@@ -9,6 +9,7 @@ export default class MapManager {
     this.map = null;
     this.drawnItems = new L.FeatureGroup();
     this.drawControl = null;
+    this.featureGroup = new L.FeatureGroup(); // Group to track all loaded features
   }
 
   init() {
@@ -24,6 +25,9 @@ export default class MapManager {
 
     // Add drawn items layer
     this.map.addLayer(this.drawnItems);
+
+    // Add feature group for loaded data
+    this.map.addLayer(this.featureGroup);
 
     // Initialize drawing tools
     this.initDrawControl();
@@ -50,7 +54,7 @@ export default class MapManager {
   displayMarker(land) {
     if (!this.map || !land.lat || !land.lng) return;
 
-    const marker = L.marker([land.lat, land.lng]).addTo(this.map);
+    const marker = L.marker([land.lat, land.lng]).addTo(this.featureGroup);
 
     const popupContent = `
       <strong>${land.ownerName}</strong><br/>
@@ -62,6 +66,9 @@ export default class MapManager {
     `;
 
     marker.bindPopup(popupContent);
+    console.log(
+      `Marker added for ${land.ownerName} at [${land.lat}, ${land.lng}]`,
+    );
   }
 
   displayPolygon(land) {
@@ -73,7 +80,7 @@ export default class MapManager {
       weight: 2,
       opacity: 0.7,
       fillOpacity: 0.4,
-    }).addTo(this.map);
+    }).addTo(this.featureGroup);
 
     const popupContent = `
       <strong>${land.ownerName}</strong><br/>
@@ -85,6 +92,7 @@ export default class MapManager {
     `;
 
     polygon.bindPopup(popupContent);
+    console.log(`Polygon added for ${land.ownerName}`);
   }
 
   getSuitabilityColor(suitability) {
@@ -95,7 +103,12 @@ export default class MapManager {
   }
 
   displayPlots(plots) {
-    if (!plots || !Array.isArray(plots)) return;
+    if (!plots || !Array.isArray(plots)) {
+      console.warn("No plots to display");
+      return;
+    }
+
+    console.log(`Loading ${plots.length} plots...`);
 
     plots.forEach((plot) => {
       if (plot.type === "polygon" && plot.coordinates) {
@@ -104,6 +117,14 @@ export default class MapManager {
         this.displayMarker(plot);
       }
     });
+
+    // Fit map to all features
+    if (this.featureGroup.getLayers().length > 0) {
+      this.map.fitBounds(this.featureGroup.getBounds(), { padding: [50, 50] });
+      console.log(
+        `Map fitted to ${this.featureGroup.getLayers().length} features`,
+      );
+    }
   }
 
   enableDraw(enable) {
@@ -118,5 +139,7 @@ export default class MapManager {
 
   clearAll() {
     this.drawnItems.clearLayers();
+    this.featureGroup.clearLayers();
+    console.log("Cleared all map features and drawn items");
   }
 }
