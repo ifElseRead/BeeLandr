@@ -18,21 +18,64 @@ export default class MapManager {
 
     // Add OpenStreetMap tiles
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      attribution:
-        '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+      attribution: "© OpenStreetMap contributors",
       maxZoom: 19,
     }).addTo(this.map);
 
-    // Add drawn items layer
+    // Add layers to map
     this.map.addLayer(this.drawnItems);
-
-    // Add feature group for loaded data
     this.map.addLayer(this.featureGroup);
 
     // Initialize drawing tools
     this.initDrawControl();
 
+    // Event: User finishes drawing a shape
+    this.map.on(L.Draw.Event.CREATED, (e) => {
+      const layer = e.layer;
+
+      // Clear previous unsaved drawings
+      this.drawnItems.clearLayers();
+      this.drawnItems.addLayer(layer);
+
+      // Calculate and update Sidebar UI
+      this.updateSidebarStats(layer);
+    });
+
     console.log("MapManager initialized");
+  }
+
+  /**
+   * Calculates area and updates the sidebar DOM elements
+   */
+  updateSidebarStats(layer) {
+    let areaValue = 0;
+    let areaText = "0 m²";
+    let hiveCount = 0;
+
+    // Check if it's a polygon or rectangle
+    if (layer instanceof L.Polygon || layer instanceof L.Rectangle) {
+      const latlngs = layer.getLatLngs()[0];
+
+      // Use GeometryUtil if available, else fallback to 0
+      if (L.GeometryUtil) {
+        areaValue = L.GeometryUtil.geodesicArea(latlngs);
+        areaText = `${Math.round(areaValue).toLocaleString()} m²`;
+        // Formula: roughly 1 hive per 10 square meters = 10 foot buffer
+        hiveCount = Math.floor(areaValue / 10);
+      } else {
+        console.warn(
+          "Leaflet.GeometryUtil not found. Please add the script tag to index.html",
+        );
+        areaText = "GeometryUtil Missing";
+      }
+    }
+
+    // Update the Sidebar UI
+    const areaDisplay = document.getElementById("area-display");
+    const hiveDisplay = document.getElementById("hive-display");
+
+    if (areaDisplay) areaDisplay.innerText = areaText;
+    if (hiveDisplay) hiveDisplay.innerText = `${hiveCount} Hives`;
   }
 
   initDrawControl() {
@@ -41,105 +84,115 @@ export default class MapManager {
         featureGroup: this.drawnItems,
       },
       draw: {
-        polygon: true,
+        polygon: {
+          allowIntersection: false,
+          showArea: true,
+          shapeOptions: { color: "#ffc107" },
+        },
+        rectangle: {
+          shapeOptions: { color: "#ffc107" },
+        },
         polyline: false,
-        rectangle: true,
         circle: false,
         marker: false,
+        circlemarker: false,
       },
     });
     this.map.addControl(this.drawControl);
   }
 
   displayMarker(land) {
-    if (!this.map || !land.lat || !land.lng) return;
+    // 1. Validation: Ensure map exists and we have coordinates
+    if (!this.map || (!land.lat && !land.lng)) return;
 
+    const isUser = land.isUserCreated;
+    const detailsUrl = `details.html?id=${land.id}`;
+
+    // 2. Create the marker
+    // Optional: You could use a custom icon here for user-created markers
     const marker = L.marker([land.lat, land.lng]).addTo(this.featureGroup);
 
+    // 3. Prepare the popup content (Matching displayPolygon structure)
     const popupContent = `
-      <strong>${land.ownerName}</strong><br/>
-      <small>${land.landType}</small><br/>
-      ${land.description}<br/>
-      📧 ${land.email}<br/>
-      📞 ${land.phone}<br/>
-      Size: ${land.landSize}ha | Suitability: ${land.suitability}/10
-    `;
+    <div class="bee-popup">
+      <h6 class="mb-1 fw-bold">${land.ownerName || "Unnamed Plot"}</h6>
+      <p class="small text-muted mb-1"><strong>Type:</strong> ${land.landType || "Unknown"}</p>
+      <p class="small text-muted mb-1"><strong>Size:</strong> ${land.landSize || land.area || "N/A"}</p>
+      <p class="small text-muted mb-1"><strong>Suitability:</strong> ${land.suitability || "N/A"}</p>
+            <p class="small text-muted mb-1"><strong>Hive Capacity:</strong> ${land.hives || "N/Asssss"}</p>
+      <p class="small text-muted mb-1"><strong>Contact:</strong> ${land.email || land.phone || "N/A"}</p>
+      <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top">
+        <span class="badge bg-warning text-dark">${land.status || (isUser ? "Local" : "Available")}</span>
+        <a href="${detailsUrl}" class="btn btn-sm btn-dark text-warning fw-bold border-warning" style="font-size: 0.7rem;">
+          VIEW DETAILS →
+        </a>
+      </div>
+    </div>
+  `;
 
-    marker.bindPopup(popupContent);
-    console.log(
-      `Marker added for ${land.ownerName} at [${land.lat}, ${land.lng}]`,
-    );
+    // 4. Bind popup with consistent constraints
+    marker.bindPopup(popupContent, {
+      maxWidth: 220,
+    });
   }
-
   displayPolygon(land) {
-    if (!this.map || !land.coordinates || !Array.isArray(land.coordinates))
-      return;
+    if (!this.map || !land.coordinates) return;
+
+    const isUser = land.isUserCreated;
+    const detailsUrl = `details.html?id=${land.id}`;
 
     const polygon = L.polygon(land.coordinates, {
-      color: this.getSuitabilityColor(land.suitability),
-      weight: 2,
-      opacity: 0.7,
+      color: isUser ? "#ffc107" : "#2E8B57",
+      weight: 3,
+      opacity: 0.8,
       fillOpacity: 0.4,
     }).addTo(this.featureGroup);
 
     const popupContent = `
-      <strong>${land.ownerName}</strong><br/>
-      <small>${land.landType}</small><br/>
-      ${land.description}<br/>
-      📧 ${land.email}<br/>
-      📞 ${land.phone}<br/>
-      Size: ${land.landSize}ha | Suitability: ${land.suitability}/10
-    `;
+    <div class="bee-popup">
+      <h6 class="mb-1 fw-bold">${land.ownerName || "Unnamed Plot"}</h6>
+      <p class="small text-muted mb-1"><strong>Type:</strong> ${land.landType || "Unknown"}</p>
+      <p class="small text-muted mb-1"><strong>Size:</strong> ${land.landSize || land.area || "N/A"}</p>
+      <p class="small text-muted mb-1"><strong>Suitability:</strong> ${land.suitability || "N/A"}</p>
+      <p class="small text-muted mb-1"><strong>Hive Capacity:</strong> ${land.hives || "N/A"}</p>
+      <p class="small text-muted mb-1"><strong>Contact:</strong> ${land.email || land.phone || "N/A"}</p>
+      <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top">
+        <span class="badge bg-warning text-dark">${land.status || (isUser ? "Local" : "Available")}</span>
+        <a href="${detailsUrl}" class="btn btn-sm btn-dark text-warning fw-bold border-warning" style="font-size: 0.7rem;">
+          VIEW DETAILS →
+        </a>
+      </div>
+    </div>
+  `;
 
-    polygon.bindPopup(popupContent);
-    console.log(`Polygon added for ${land.ownerName}`);
-  }
-
-  getSuitabilityColor(suitability) {
-    if (suitability >= 9) return "#2ecc71"; // Green - Excellent
-    if (suitability >= 8) return "#27ae60"; // Dark green - Very good
-    if (suitability >= 7) return "#f39c12"; // Orange - Good
-    return "#e74c3c"; // Red - Fair
-  }
-
-  displayPlots(plots) {
-    if (!plots || !Array.isArray(plots)) {
-      console.warn("No plots to display");
-      return;
-    }
-
-    console.log(`Loading ${plots.length} plots...`);
-
-    plots.forEach((plot) => {
-      if (plot.type === "polygon" && plot.coordinates) {
-        this.displayPolygon(plot);
-      } else if (plot.lat && plot.lng) {
-        this.displayMarker(plot);
-      }
+    polygon.bindPopup(popupContent, {
+      maxWidth: 220,
     });
-
-    // Fit map to all features
-    if (this.featureGroup.getLayers().length > 0) {
-      this.map.fitBounds(this.featureGroup.getBounds(), { padding: [50, 50] });
-      console.log(
-        `Map fitted to ${this.featureGroup.getLayers().length} features`,
-      );
-    }
   }
 
   enableDraw(enable) {
     if (!this.drawControl) return;
-
-    if (enable) {
-      this.map.addControl(this.drawControl);
-    } else {
-      this.map.removeControl(this.drawControl);
-    }
+    enable
+      ? this.map.addControl(this.drawControl)
+      : this.map.removeControl(this.drawControl);
   }
 
   clearAll() {
     this.drawnItems.clearLayers();
     this.featureGroup.clearLayers();
-    console.log("Cleared all map features and drawn items");
+    // Reset sidebar text
+    const areaDisplay = document.getElementById("area-display");
+    const hiveDisplay = document.getElementById("hive-display");
+    if (areaDisplay) areaDisplay.innerText = "No plot drawn yet.";
+    if (hiveDisplay) hiveDisplay.innerText = "0 Hives";
+  }
+
+  getDrawnLayer() {
+    const layers = this.drawnItems.getLayers();
+    return layers.length > 0 ? layers[layers.length - 1] : null;
+  }
+
+  clearDrawLayer() {
+    this.drawnItems.clearLayers();
   }
 }

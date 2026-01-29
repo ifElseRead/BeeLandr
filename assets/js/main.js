@@ -1,184 +1,295 @@
 /**
- * Main Application Controller
- * Manages user roles, UI states, and event orchestration.
+ * Main Application Controller (main.js)
+ * Manages user roles, UI states, and data persistence.
  */
 import StorageManager from "./services/StorageManager.js";
 import MapManager from "./services/MapManager.js";
 
-const storage = new StorageManager();
-let mapManager = null;
+const ROLES = { LANDOWNER: "landowner", BEEKEEPER: "beekeeper" };
+
+const ROLE_SETTINGS = {
+  [ROLES.LANDOWNER]: {
+    title: "Plot Analysis",
+    message: "Use the map tools to draw your plot.",
+    draw: true,
+  },
+  [ROLES.BEEKEEPER]: {
+    title: "Find Hive Space",
+    message: "Browsing available plots in your area.",
+    draw: false,
+  },
+};
 
 export const app = {
-  role: null,
-  modal: null,
+  state: {
+    role: null,
+    modal: null,
+    map: null,
+    filters: { hiveCapacity: null, landType: null },
+    allPlots: [],
+  },
+  storage: new StorageManager(),
 
-  init() {
-    console.log("App init() starting...");
+  // Cached DOM elements
+  el: {
+    sidebarTitle: null,
+    feedback: null,
+    switchBtn: null,
+    saveBtn: null,
+    clearBtn: null,
+    saveForm: null,
+    plotInfo: null, // Landowner specific
+    landownerActions: null, // Landowner specific
+    filterContainer: null, // Beekeeper specific
+    hiveCapacityFilter: null,
+    landTypeFilter: null,
+    applyFiltersBtn: null,
+  },
 
-    const modalEl = document.getElementById("roleModal");
-    const switchBtn = document.getElementById("switch-role-btn");
+  init(mapInstance) {
+    this.state.map = mapInstance;
+    this.cacheElements();
+    this.bindEvents();
 
-    console.log("Modal element found:", !!modalEl);
-    console.log("Switch button found:", !!switchBtn);
-
-    if (!modalEl) {
-      console.error("Role modal not found in DOM");
-      return;
-    }
-
-    this.modal = new bootstrap.Modal(modalEl);
-
-    if (switchBtn) {
-      console.log("Attaching click listener to switch role button");
-      switchBtn.addEventListener("click", () => this.clearRole());
-    } else {
-      console.error("Switch role button not found!");
-    }
-
-    const savedRole = storage.load("userRole");
-
+    const savedRole = this.storage.load("userRole");
     if (this.isValidRole(savedRole)) {
-      this.role = savedRole;
-      this.updateUIForRole();
-      console.log(`Restored role from storage: ${this.role}`);
+      this.setRole(savedRole, false);
     } else {
-      this.modal.show();
-      console.log("No stored role found. Awaiting role selection...");
+      this.state.modal.show();
     }
   },
 
-  setRole(selectedRole) {
-    console.log(`setRole() called with: ${selectedRole}`);
+  cacheElements() {
+    this.el.sidebarTitle = document.querySelector("#sidebar h2");
+    this.el.feedback = document.getElementById("feedback-msg");
+    this.el.switchBtn = document.getElementById("switch-role-btn");
 
-    if (!this.isValidRole(selectedRole)) {
-      console.warn("Invalid role selection attempted:", selectedRole);
-      return;
-    }
+    // --- ADD THESE LINES ---
+    this.el.saveBtn = document.getElementById("save-btn"); // Or whatever your ID is
+    this.el.clearBtn = document.getElementById("clear-btn");
+    this.el.saveForm = document.getElementById("save-plot-form"); // Ensure this matches your HTML
+    // -----------------------
 
-    this.role = selectedRole;
-    storage.save("userRole", this.role);
+    this.el.landownerSection = document.getElementById("landowner-section");
+    this.el.beekeeperSection = document.getElementById("beekeeper-section");
 
-    console.log("Hiding modal...");
-    this.modal.hide();
-
-    this.updateUIForRole();
-
-    console.log(`Role set to: ${this.role}`);
-  },
-
-  clearRole() {
-    console.log("clearRole() called");
-    this.role = null;
-    storage.remove("userRole");
-
-    const sidebarTitle = document.querySelector("#sidebar h2");
-    const feedback = document.getElementById("feedback-msg");
-
-    if (sidebarTitle) sidebarTitle.innerText = "Plot Analysis";
-    if (feedback) feedback.innerText = "";
-
-    document.body.classList.remove("role-landowner");
-
-    if (window.mapManager) {
-      console.log("Clearing map...");
-      window.mapManager.enableDraw(false);
-      window.mapManager.clearAll();
-    }
-
-    if (this.modal) {
-      console.log("Showing modal...");
-      this.modal.show();
-    } else {
-      console.error("Modal not initialized!");
-    }
-
-    console.log("Role cleared. Awaiting new selection.");
-  },
-
-  isValidRole(role) {
-    return role === "landowner" || role === "beekeeper";
-  },
-
-  updateUIForRole() {
-    const sidebarTitle = document.querySelector("#sidebar h2");
-    const feedback = document.getElementById("feedback-msg");
-
-    if (!sidebarTitle || !feedback) {
-      console.warn("UI elements missing");
-      return;
-    }
-
-    const isLandowner = this.role === "landowner";
-    console.log(
-      `Updating UI for role: ${this.role} (isLandowner: ${isLandowner})`,
+    this.el.hiveCapacityFilter = document.getElementById(
+      "hive-capacity-filter",
     );
+    this.el.landTypeFilter = document.getElementById("land-type-filter");
+    this.el.applyFiltersBtn = document.getElementById("apply-filters-btn");
 
-    document.body.classList.toggle("role-landowner", isLandowner);
+    this.state.modal = new bootstrap.Modal(
+      document.getElementById("roleModal"),
+    );
+  },
 
-    sidebarTitle.innerText = isLandowner
-      ? "Landowner Tools"
-      : "Beekeeper Search";
+  bindEvents() {
+    // 1. Role Management
+    this.el.switchBtn?.addEventListener("click", () => this.clearRole());
 
-    feedback.innerText = isLandowner
-      ? "Use the map tools to draw your plot."
-      : "Browsing available plots in your area.";
+    // 2. Open the Save Modal (Triggered by button on sidebar)
+    this.el.saveBtn?.addEventListener("click", () => this.handleSavePlot());
 
-    if (window.mapManager) {
-      console.log("MapManager available, calling methods...");
-      window.mapManager.enableDraw(isLandowner);
+    // 3. The Actual Save (Triggered by the form inside the modal)
+    this.el.saveForm?.addEventListener("submit", (event) => {
+      event.preventDefault();
+      this.finalizeSave(); // Let this function handle the logic AND the closing
+    });
 
-      if (!isLandowner) {
-        console.log("Loading community plots...");
-        this.loadCommunityPlots();
-      }
-    } else {
-      console.warn("MapManager not available");
+    // 4. Map Utility
+    this.el.clearBtn?.addEventListener("click", () => {
+      this.state.map.clearDrawLayer();
+      this.el.feedback.innerText = "Map cleared.";
+    });
+
+    // 5. Beekeeper Filter Events
+    this.el.applyFiltersBtn?.addEventListener("click", () => {
+      this.state.filters.hiveCapacity = this.el.hiveCapacityFilter.value;
+      this.state.filters.landType = this.el.landTypeFilter.value;
+      this.applyFilters();
+    });
+  },
+
+  handleSavePlot() {
+    const layer = this.state.map.getDrawnLayer();
+    const currentArea = document.getElementById("area-display")?.innerText;
+    const currentHives = document.getElementById("hive-display")?.innerText;
+
+    if (!layer || currentArea === "No plot drawn yet.") {
+      alert("Wait! You need to draw a shape on the map first.");
+      return;
     }
+
+    this.el.saveForm.reset();
+    document.getElementById("modal-area-summary").innerText =
+      `Area: ${currentArea}`;
+    document.getElementById("modal-hive-summary").innerText =
+      `Capacity: ${currentHives}`;
+
+    const saveModal = new bootstrap.Modal(document.getElementById("saveModal"));
+    saveModal.show();
+  },
+
+  finalizeSave() {
+    // 1. Identify the drawn layer from MapManager
+    const layer = this.state.map.getDrawnLayer();
+    if (!layer) {
+      console.error("Save triggered, but no layer found on the map.");
+      return;
+    }
+
+    // 2. Handle Focus & Accessibility
+    // Blurring the active element prevents the "Blocked aria-hidden" console error
+    if (document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
+
+    // 3. Normalize Coordinates
+    // Leaflet.draw often returns coordinates as a nested array: [[{lat, lng}, ...]]
+    // We flatten it slightly to ensure it's a simple array of points for JSON storage.
+    let rawCoords = layer.getLatLngs();
+    const normalizedCoords = Array.isArray(rawCoords[0])
+      ? rawCoords[0]
+      : rawCoords;
+
+    // 4. Construct the Plot Object
+    const newPlot = {
+      id: `local-${Date.now()}`, // Unique ID for local storage plots
+      ownerName: document.getElementById("plot-name")?.value || "Anonymous",
+      landType: document.getElementById("land-type")?.value || "Unspecified",
+      email: document.getElementById("plot-email")?.value, // email is required in HTML
+      phone: document.getElementById("plot-phone")?.value || "N/A",
+      type: "polygon",
+      coordinates: normalizedCoords,
+      area: document.getElementById("area-display")?.innerText || "0",
+      hives: document.getElementById("hive-display")?.innerText || "0",
+      timestamp: new Date().toISOString(),
+      isUserCreated: true, // Flag to style these differently on the map later
+    };
+
+    // 5. Persistence: Save to LocalStorage
+    try {
+      const existingPlots = this.storage.load("user_plots") || [];
+      existingPlots.push(newPlot);
+      this.storage.save("user_plots", existingPlots);
+
+      console.log("✅ Plot successfully saved to storage:", newPlot);
+    } catch (err) {
+      console.error("❌ Failed to save plot to storage:", err);
+      alert(
+        "There was an error saving your plot. Local storage might be full.",
+      );
+      return;
+    }
+
+    // 6. UI Cleanup & Modal Handling
+    const saveModalEl = document.getElementById("saveModal");
+    const modalInstance = bootstrap.Modal.getInstance(saveModalEl);
+    if (modalInstance) {
+      modalInstance.hide();
+    }
+
+    // 7. Map & UI Refresh
+    this.state.map.clearDrawLayer(); // Remove the "editable" drawing
+    this.loadCommunityPlots(); // Refresh the map to show the new "saved" plot
+
+    // Visual feedback for the user
+    if (this.el.feedback) {
+      this.el.feedback.innerText = "Plot saved successfully! 🍯";
+      this.el.feedback.className = "text-success fw-bold p-2";
+    }
+
+    // Optional: Return focus to the map container for keyboard users
+    document.getElementById("map")?.focus();
+  },
+
+  setRole(role, shouldSave = true) {
+    if (!this.isValidRole(role)) return;
+    this.state.role = role;
+    if (shouldSave) this.storage.save("userRole", role);
+
+    this.state.modal.hide();
+    this.updateUI();
+  },
+
+  updateUI() {
+    const settings = ROLE_SETTINGS[this.state.role];
+    if (!settings) return;
+
+    // 1. Text & Theme
+    if (this.el.sidebarTitle) this.el.sidebarTitle.innerText = settings.title;
+    document.body.classList.remove("role-landowner", "role-beekeeper");
+    document.body.classList.add(`role-${this.state.role}`);
+
+    // 2. Map Drawing
+    this.state.map.enableDraw(settings.draw);
+
+    // 3. THE TOGGLE (Crucial)
+    const isLandowner = this.state.role === "landowner";
+
+    if (this.el.landownerSection) {
+      this.el.landownerSection.style.display = isLandowner ? "block" : "none";
+    }
+
+    if (this.el.beekeeperSection) {
+      this.el.beekeeperSection.style.display = isLandowner ? "none" : "block";
+    }
+
+    this.loadCommunityPlots();
   },
 
   async loadCommunityPlots() {
     try {
-      console.log("Loading community plots...");
       const response = await fetch("assets/data/landData.json");
-      const lands = await response.json();
-
-      console.log(`Fetched ${lands.length} land entries`);
-
-      if (window.mapManager && lands.length > 0) {
-        console.log("Displaying plots on map...");
-        lands.forEach((land) => {
-          if (land.type === "polygon" && land.coordinates) {
-            // Draw polygon for large plots
-            window.mapManager.displayPolygon(land);
-          } else if (land.lat && land.lng) {
-            // Draw marker for point locations
-            window.mapManager.displayMarker(land);
-          }
-        });
-        console.log("All plots displayed");
-      } else {
-        console.warn("mapManager not available or no lands to display");
-      }
+      const seedPlots = await response.json();
+      const userPlots = this.storage.load("user_plots") || [];
+      this.state.allPlots = [...seedPlots, ...userPlots];
+      this.applyFilters();
     } catch (error) {
-      console.error("Error loading land data:", error);
-      document.getElementById("feedback-msg").innerText =
-        "Failed to load available land plots.";
+      console.error("Sync error:", error);
     }
   },
+
+  applyFilters() {
+    let filtered = this.state.allPlots;
+
+    if (this.state.filters.hiveCapacity) {
+      const min = parseInt(this.state.filters.hiveCapacity);
+      filtered = filtered.filter((p) => (parseInt(p.hives) || 0) <= min);
+    }
+
+    if (this.state.filters.landType) {
+      filtered = filtered.filter(
+        (p) => p.landType === this.state.filters.landType,
+      );
+    }
+
+    this.state.map.clearAll();
+    filtered.forEach((plot) => {
+      plot.type === "polygon"
+        ? this.state.map.displayPolygon(plot)
+        : this.state.map.displayMarker(plot);
+    });
+
+    if (this.state.role === ROLES.BEEKEEPER) {
+      this.el.feedback.innerText = `Found ${filtered.length} plots matching your criteria.`;
+    }
+  },
+
+  clearRole() {
+    this.state.role = null;
+    this.storage.remove("userRole");
+    this.state.modal.show();
+  },
+
+  isValidRole: (role) => Object.values(ROLES).includes(role),
 };
 
-// Start the app when DOM is ready
+// Orchestration
 document.addEventListener("DOMContentLoaded", () => {
-  // Initialize map first
-  mapManager = new MapManager("map");
+  const mapManager = new MapManager("map");
   mapManager.init();
-
-  // Expose map manager globally
-  window.mapManager = mapManager;
-
-  // Then initialize app
-  app.init();
+  app.init(mapManager);
+  window.app = app;
 });
-
-// 👇 expose for inline handlers
-window.app = app;

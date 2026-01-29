@@ -3,23 +3,28 @@
 ========================================================= */
 :root {
   /* Bee theme (default / beekeeper) */
-  --bee-yellow: #fbc02d;
-  --bee-yellow-hover: #f9a825;
+  --bee-yellow: #ffc107;
+  --bee-yellow-hover: #ffca28;
 
   /* Landowner theme */
-  --land-green: #66bb6a;
-  --land-green-hover: #4caf50;
+  --land-green: #2e7d32;
+  --land-green-hover: #43a047;
 
-  /* Shared */
+  /* Wildflower accent */
+  --wildflower-purple: #673ab7;
+  --wildflower-purple-hover: #7e57c2;
+
+  /* Shared UI Colors */
   --bee-black: #1a1a1a;
   --sidebar-bg: #262626;
   --text-light: #f8f9fa;
   --card-accent: rgba(255, 255, 255, 0.05);
   --modal-dim: rgba(0, 0, 0, 0.85);
+  --honey-bg: #fffdf0;
 }
 
 /* =========================================================
-   Layout Structure 
+   Layout & Typography
 ========================================================= */
 html,
 body {
@@ -27,162 +32,251 @@ body {
   margin: 0;
 }
 
-/* IMPORTANT FIX:
-   Do NOT hide vertical overflow on body (breaks navbar alignment)
-*/
 body {
   overflow-x: hidden;
+  font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
 
-/* App height minus navbar */
 .vh-100-minus-nav {
   height: calc(100vh - 56px);
-  overflow: hidden; /* scrolling is constrained here */
+  overflow: hidden;
   display: flex;
-  flex-wrap: nowrap;
-}
-
-/* Ensure navbar contents stay vertically centered */
-.navbar .container-fluid {
-  align-items: center;
 }
 
 /* =========================================================
-   Landowner Role Theme Overrides
+   Role-Based Theme Overrides
 ========================================================= */
 body.role-landowner {
   --bee-yellow: var(--land-green);
   --bee-yellow-hover: var(--land-green-hover);
 }
 
-body.role-landowner aside#sidebar .card {
-  background-color: rgba(102, 187, 106, 0.08);
-  border-color: rgba(102, 187, 106, 0.25);
+body.role-landowner aside#sidebar {
+  border-right-color: var(--land-green);
+}
+
+body.role-landowner .btn-bee {
+  box-shadow: 0 4px 15px rgba(46, 125, 50, 0.3);
 }
 
 /* =========================================================
-   Sidebar Styling (Bootstrap Overrides via Specificity)
+   Sidebar & UI Components
 ========================================================= */
 aside#sidebar.bg-dark {
   background-color: var(--sidebar-bg);
-  border-right: 2px solid var(--bee-yellow);
+  border-right: 3px solid var(--bee-yellow);
   display: flex;
   flex-direction: column;
+  transition: border-color 0.3s ease;
 }
 
-/* Sidebar Cards */
 aside#sidebar .card {
   background-color: var(--card-accent);
   border: 1px solid rgba(255, 255, 255, 0.1);
   color: var(--text-light);
+  border-radius: 12px;
 }
 
-/* Override Bootstrap .text-muted safely */
-aside#sidebar .card p.text-muted {
-  color: var(--bee-yellow);
+/* Label styling used in both Plot Info and Filter cards */
+aside#sidebar .card p.text-muted,
+aside#sidebar .card label.text-muted {
+  color: var(--bee-yellow) !important;
   font-size: 0.75rem;
+  font-weight: bold;
   letter-spacing: 1.2px;
+  text-transform: uppercase;
+  margin-bottom: 0.5rem;
+  display: block;
 }
 
-/* =========================================================
-   Buttons 
-========================================================= */
+/* Input & Select Styling for Sidebar Filters */
+#sidebar .form-select {
+  background-color: rgba(255, 255, 255, 0.95);
+  border: none;
+  font-weight: 500;
+  color: var(--bee-black);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+#sidebar .form-select:focus {
+  background-color: #ffffff;
+  box-shadow: 0 0 0 0.25rem rgba(255, 193, 7, 0.4);
+  outline: none;
+}
+
 .btn-bee {
   background-color: var(--bee-yellow);
   color: var(--bee-black);
   font-weight: 700;
   padding: 0.8rem;
   border: 0;
-  transition:
-    transform 0.2s ease,
-    box-shadow 0.2s ease;
+  border-radius: 8px;
+  transition: all 0.2s ease;
 }
 
 .btn-bee:hover {
   background-color: var(--bee-yellow-hover);
   transform: translateY(-2px);
-  box-shadow: 0 4px 15px rgba(251, 192, 45, 0.3);
+  box-shadow: 0 6px 20px rgba(255, 193, 7, 0.4);
 }
 
 /* =========================================================
-   Map & Leaflet Customisation 
+   About & 404 Pages
 ========================================================= */
-
-/* Ensure columns take full height */
-.row > aside,
-.row > section {
-  height: 100%;
-  overflow: hidden;
+.about-body {
+  background-color: var(--honey-bg);
 }
 
-#map-container {
-  background-color: #000;
-  height: 100%;
-  width: 100%;
-  overflow: hidden;
+.hero-section {
+  background:
+    linear-gradient(135deg, rgba(255, 193, 7, 0.8), rgba(103, 58, 183, 0.6)),
+    url("https://images.unsplash.com/photo-1473973266408-ed4e27abdd47?auto=format&fit=crop&q=80&w=1500");
+  background-size: cover;
+  background-position: center;
+  padding: 120px 0;
+  color: white;
+  text-shadow: 2px 2px 10px rgba(0, 0, 0, 0.5);
+}
+
+.stats-box {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 20px;
+  padding: 40px;
+}
+
+.feature-card {
+  border: none;
+  border-radius: 20px;
+  color: white;
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
+}
+
+.feature-card:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+}
+
+.bg-meadow {
+  background: linear-gradient(45deg, #43a047, #2e7d32);
+}
+.bg-purple {
+  background: linear-gradient(45deg, #7e57c2, #673ab7);
+}
+.bg-gold {
+  background: linear-gradient(45deg, #ffca28, #ff8f00);
+}
+
+.section-title {
+  color: var(--land-green);
+  font-weight: 800;
   position: relative;
-  display: flex;
-  flex-direction: column;
+  display: inline-block;
 }
 
+.section-title::after {
+  content: "";
+  width: 60%;
+  height: 4px;
+  background: var(--bee-yellow);
+  position: absolute;
+  bottom: -10px;
+  left: 20%;
+  border-radius: 10px;
+}
+
+/* =========================================================
+   404 Page (Centered & Swarm Logic)
+========================================================= */
+body.error-page-body {
+  background: radial-gradient(
+    circle at center,
+    var(--wildflower-purple) 0%,
+    var(--bee-black) 80%
+  );
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+body.error-page-body::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url("https://www.transparenttextures.com/patterns/honey-comb.png");
+  opacity: 0.05;
+  z-index: 1;
+}
+
+.error-code {
+  font-size: clamp(6rem, 20vw, 12rem);
+  font-weight: 900;
+  color: var(--bee-yellow);
+  line-height: 1;
+  text-shadow: 0 0 30px rgba(255, 193, 7, 0.4);
+}
+
+.bee-lost {
+  display: inline-block;
+  animation: flyAround 4s infinite ease-in-out;
+}
+
+@keyframes flyAround {
+  0% {
+    transform: translate(0, 0) rotate(0deg);
+  }
+  25% {
+    transform: translate(30px, -20px) rotate(10deg);
+  }
+  50% {
+    transform: translate(-15px, -30px) rotate(-10deg);
+  }
+  75% {
+    transform: translate(20px, 10px) rotate(5deg);
+  }
+  100% {
+    transform: translate(0, 0) rotate(0deg);
+  }
+}
+
+/* =========================================================
+   Map & Leaflet
+========================================================= */
 #map {
   height: 100%;
   width: 100%;
-  flex: 1;
+  background: var(--bee-black);
 }
 
-/* Leaflet Draw Toolbar */
-.leaflet-draw-toolbar a {
-  border-bottom: 1px solid #ccc;
-}
-
-/* Polygon tool visual tweak */
-.leaflet-draw-draw-polygon {
-  filter: sepia(1) saturate(5) hue-rotate(10deg);
-}
-
-/* Drawing handles */
-.leaflet-editing-icon {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
+#map .leaflet-editing-icon {
   background-color: var(--bee-yellow);
   border: 2px solid var(--bee-black);
+  border-radius: 50%;
 }
 
 /* =========================================================
-   Modal Styling & Accessibility 
-======================================================== */
-.modal-backdrop.show {
-  background-color: #000;
-  opacity: 0.85;
-}
-
-.modal-content {
-  border: 1px solid var(--bee-yellow);
-  box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
-}
-
-/* =========================================================
-   Responsive Adjustments 
+   Responsive Breakpoints
 ========================================================= */
 @media (max-width: 768px) {
-  body {
-    overflow: auto;
-  }
-
   .vh-100-minus-nav {
     height: auto;
-    overflow: visible;
     flex-direction: column;
   }
-
   #map {
     height: 50vh;
   }
-
   aside#sidebar.bg-dark {
     border-right: 0;
-    border-top: 3px solid var(--bee-yellow);
+    border-top: 5px solid var(--bee-yellow);
   }
 }
