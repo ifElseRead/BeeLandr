@@ -31,13 +31,10 @@ describe("App Data Loading", () => {
       <div id="roleModal"></div>
     `;
 
-    // 3. Inject the mock map
     app.state.map = mockMap;
 
-    // 4. Cache elements (now bootstrap.Modal won't crash)
     app.cacheElements();
 
-    // 5. Mock Fetch
     global.fetch = jest.fn(() =>
       Promise.resolve({
         ok: true,
@@ -72,7 +69,6 @@ describe("App Data Loading", () => {
 
     await app.loadCommunityPlots();
 
-    // Asset - Should be called twice (1 fetch item + 1 localStorage item)
     expect(mockMap.displayPolygon).toHaveBeenCalledTimes(2);
   });
 });

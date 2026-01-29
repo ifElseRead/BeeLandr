@@ -64,11 +64,9 @@ export const app = {
     this.el.feedback = document.getElementById("feedback-msg");
     this.el.switchBtn = document.getElementById("switch-role-btn");
 
-    // --- ADD THESE LINES ---
-    this.el.saveBtn = document.getElementById("save-btn"); // Or whatever your ID is
+    ElementById("save-btn");
     this.el.clearBtn = document.getElementById("clear-btn");
-    this.el.saveForm = document.getElementById("save-plot-form"); // Ensure this matches your HTML
-    // -----------------------
+    this.el.saveForm = document.getElementById("save-plot-form");
 
     this.el.landownerSection = document.getElementById("landowner-section");
     this.el.beekeeperSection = document.getElementById("beekeeper-section");
@@ -94,7 +92,7 @@ export const app = {
     // 3. The Actual Save (Triggered by the form inside the modal)
     this.el.saveForm?.addEventListener("submit", (event) => {
       event.preventDefault();
-      this.finalizeSave(); // Let this function handle the logic AND the closing
+      this.finalizeSave();
     });
 
     // 4. Map Utility
@@ -140,14 +138,12 @@ export const app = {
     }
 
     // 2. Handle Focus & Accessibility
-    // Blurring the active element prevents the "Blocked aria-hidden" console error
     if (document.activeElement instanceof HTMLElement) {
       document.activeElement.blur();
     }
 
     // 3. Normalize Coordinates
-    // Leaflet.draw often returns coordinates as a nested array: [[{lat, lng}, ...]]
-    // We flatten it slightly to ensure it's a simple array of points for JSON storage.
+    // flatten nested arrays if necessary
     let rawCoords = layer.getLatLngs();
     const normalizedCoords = Array.isArray(rawCoords[0])
       ? rawCoords[0]
@@ -165,7 +161,7 @@ export const app = {
       area: document.getElementById("area-display")?.innerText || "0",
       hives: document.getElementById("hive-display")?.innerText || "0",
       timestamp: new Date().toISOString(),
-      isUserCreated: true, // Flag to style these differently on the map later
+      isUserCreated: true,
     };
 
     // 5. Persistence: Save to LocalStorage
@@ -200,7 +196,7 @@ export const app = {
       this.el.feedback.className = "text-success fw-bold p-2";
     }
 
-    // Optional: Return focus to the map container for keyboard users
+    // 8. Refocus on the map
     document.getElementById("map")?.focus();
   },
 

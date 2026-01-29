@@ -70,7 +70,7 @@ export default class MapManager {
       }
     }
 
-    // Update the Sidebar UI
+    // Update the Sidebar
     const areaDisplay = document.getElementById("area-display");
     const hiveDisplay = document.getElementById("hive-display");
 
@@ -108,8 +108,8 @@ export default class MapManager {
     const isUser = land.isUserCreated;
     const detailsUrl = `details.html?id=${land.id}`;
 
-    // 2. Create the marker
-    // Optional: You could use a custom icon here for user-created markers
+    // 2. Create the marker / Customize once the flow is working
+
     const marker = L.marker([land.lat, land.lng]).addTo(this.featureGroup);
 
     // 3. Prepare the popup content (Matching displayPolygon structure)
@@ -119,7 +119,7 @@ export default class MapManager {
       <p class="small text-muted mb-1"><strong>Type:</strong> ${land.landType || "Unknown"}</p>
       <p class="small text-muted mb-1"><strong>Size:</strong> ${land.landSize || land.area || "N/A"}</p>
       <p class="small text-muted mb-1"><strong>Suitability:</strong> ${land.suitability || "N/A"}</p>
-            <p class="small text-muted mb-1"><strong>Hive Capacity:</strong> ${land.hives || "N/Asssss"}</p>
+      <p class="small text-muted mb-1"><strong>Hive Capacity:</strong> ${land.hives || "N/Asssss"}</p>
       <p class="small text-muted mb-1"><strong>Contact:</strong> ${land.email || land.phone || "N/A"}</p>
       <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top">
         <span class="badge bg-warning text-dark">${land.status || (isUser ? "Local" : "Available")}</span>
