@@ -1,0 +1,339 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Detailed information about a beekeeping plot location including map, weather, and contact information"
+    />
+    <title>Plot Details - BeeLandr</title>
+
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    />
+    <link rel="stylesheet" href="assets/css/style.css" />
+  </head>
+
+  <body class="bg-dark text-light">
+    <!-- Skip to main content link -->
+    <a
+      href="#main-content"
+      class="btn btn-warning position-absolute"
+      style="top: -40px; left: 0"
+      onclick="this.style.top = '10px'"
+      >Skip to main content</a
+    >
+
+    <!-- Top Nav -->
+    <nav
+      class="navbar navbar-dark bg-dark border-bottom border-warning"
+      role="navigation"
+      aria-label="Main navigation"
+    >
+      <div class="container-fluid">
+        <a
+          class="navbar-brand fw-bold text-warning"
+          href="index.html"
+          aria-label="BeeLandr - Back to home"
+        >
+          ← BeeLandr
+        </a>
+      </div>
+    </nav>
+
+    <main
+      id="main-content"
+      class="container-fluid py-4"
+      role="main"
+      aria-label="Plot details"
+    >
+      <!-- Page Title (hidden but in outline) -->
+      <h1 class="visually-hidden">Plot Details</h1>
+
+      <!-- Map Section (Full Width) -->
+      <section class="row g-4 mb-4" aria-labelledby="map-heading">
+        <div class="col-12">
+          <div class="card h-100">
+            <div class="card-header bg-dark text-warning fw-bold">
+              <h2 id="map-heading" class="mb-0">Location Map</h2>
+            </div>
+            <div class="card-body p-0">
+              <div
+                id="detailMap"
+                style="height: 400px; width: 100%"
+                role="region"
+                aria-label="Interactive map showing plot location"
+              ></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Plot Data and Weather Side by Side -->
+      <section class="row g-4" aria-labelledby="plot-data-heading">
+        <!-- Plot Data Section -->
+        <section class="col-lg-6" aria-labelledby="plot-data-heading">
+          <div class="card h-100">
+            <div class="card-header bg-dark border-bottom border-warning">
+              <h2 id="plot-data-heading" class="mb-0 fw-bold text-warning">
+                Plot Information
+              </h2>
+              <p
+                class="fw-bold text-warning mt-2"
+                id="ownerName"
+                aria-live="polite"
+              >
+                Loading...
+              </p>
+            </div>
+
+            <div
+              class="card-body"
+              role="region"
+              aria-label="Detailed plot information"
+            >
+              <!-- Meta Info -->
+              <div class="row mb-4">
+                <div class="col-md-6">
+                  <p class="text-muted">Land Type</p>
+                  <div id="landType" class="fs-5 fw-bold">-</div>
+                </div>
+                <div class="col-md-6">
+                  <p class="text-muted">Status</p>
+                  <div id="statusBadge"></div>
+                </div>
+              </div>
+
+              <hr />
+
+              <!-- Size Info -->
+              <div class="row mb-4">
+                <div class="col-md-6">
+                  <p class="text-muted">Land Size</p>
+                  <div id="landSize" class="fs-5">-</div>
+                </div>
+                <div class="col-md-6">
+                  <p class="text-muted">Area (m²)</p>
+                  <div id="area" class="fs-5">-</div>
+                </div>
+              </div>
+
+              <hr />
+
+              <!-- Bee Suitability -->
+              <div class="row mb-4">
+                <div class="col-md-6">
+                  <p class="text-muted">Suitability</p>
+                  <div id="suitability" class="fs-5 fw-bold text-success">
+                    -
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <p class="text-muted">Hive Capacity</p>
+                  <div id="hives" class="fs-5 fw-bold">-</div>
+                </div>
+              </div>
+
+              <hr />
+
+              <!-- Coordinates -->
+              <div class="mb-4">
+                <p class="text-muted">Coordinates</p>
+                <div id="coordinates" class="small font-monospace text-warning">
+                  -
+                </div>
+              </div>
+
+              <hr />
+
+              <!-- Contact -->
+              <h6 class="fw-bold text-warning mb-3">Contact Information</h6>
+
+              <div class="row mb-4">
+                <div class="col-md-6">
+                  <p class="text-muted">Email</p>
+                  <p id="email">
+                    <a href="mailto:" class="text-warning text-decoration-none">
+                      -
+                    </a>
+                  </p>
+                </div>
+                <div class="col-md-6">
+                  <p class="text-muted">Phone</p>
+                  <p id="phone">
+                    <a href="tel:" class="text-warning text-decoration-none">
+                      -
+                    </a>
+                  </p>
+                </div>
+              </div>
+
+              <!-- Actions -->
+              <div class="d-flex justify-content-end gap-3">
+                <button
+                  class="btn btn-outline-warning"
+                  onclick="window.history.back()"
+                  aria-label="Go back to previous page"
+                >
+                  Back
+                </button>
+                <button
+                  id="contactBtn"
+                  class="btn btn-bee"
+                  aria-label="Send email to plot owner"
+                >
+                  Contact Owner
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Weather Information Section -->
+        <section class="col-lg-6" aria-labelledby="weather-heading">
+          <div class="card h-100">
+            <div class="card-header bg-dark border-bottom border-warning">
+              <h2 id="weather-heading" class="mb-0 fw-bold text-warning">
+                Climate & Weather
+              </h2>
+            </div>
+
+            <div
+              class="card-body"
+              role="region"
+              aria-label="Weather and climate information for the plot"
+            >
+              <div class="row mb-4">
+                <div class="col-md-6">
+                  <p class="text-muted">Avg Temperature</p>
+                  <div id="avgTemp" class="fs-5">-</div>
+                </div>
+                <div class="col-md-6">
+                  <p class="text-muted">Humidity</p>
+                  <div id="humidity" class="fs-5">-</div>
+                </div>
+              </div>
+
+              <hr />
+
+              <div class="row mb-4">
+                <div class="col-md-6">
+                  <p class="text-muted">Annual Rainfall</p>
+                  <div id="rainfall" class="fs-5">-</div>
+                </div>
+                <div class="col-md-6">
+                  <p class="text-muted">Wind Speed</p>
+                  <div id="windSpeed" class="fs-5">-</div>
+                </div>
+              </div>
+
+              <hr />
+
+              <div class="mb-4">
+                <label for="beeScoreBar" class="text-muted"
+                  >Bee Suitability Score</label
+                >
+                <div class="progress" style="height: 25px">
+                  <div
+                    id="beeScoreBar"
+                    class="progress-bar bg-warning"
+                    role="progressbar"
+                    aria-valuenow="0"
+                    aria-valuemin="0"
+                    aria-valuemax="100"
+                    aria-label="Bee suitability score"
+                    style="width: 0%"
+                  >
+                    <span
+                      id="beeScoreText"
+                      class="text-dark fw-bold"
+                      style="font-size: 0.9rem"
+                      aria-hidden="true"
+                      >0%</span
+                    >
+                  </div>
+                </div>
+                <small class="text-muted mt-1" id="beeScoreDesc" aria-live="polite"
+                  >Loading...</small
+                >
+              </div>
+
+              <hr />
+
+              <!-- Pollen & Foraging Information -->
+              <h3 class="fw-bold text-warning mb-3" style="font-size: 1.1rem">🌼 Pollen & Forage</h3>
+              
+              <div class="mb-4">
+                <label for="forageIndexBar" class="text-muted">Foraging Index</label>
+                <div class="progress" style="height: 20px">
+                  <div
+                    id="forageIndexBar"
+                    class="progress-bar bg-success"
+                    role="progressbar"
+                    aria-valuenow="0"
+                    aria-valuemin="0"
+                    aria-valuemax="100"
+                    aria-label="Bee foraging index based on pollen availability"
+                    style="width: 0%"
+                  >
+                    <span
+                      id="forageIndexText"
+                      class="text-light fw-bold"
+                      style="font-size: 0.85rem"
+                      aria-hidden="true"
+                      >0%</span
+                    >
+                  </div>
+                </div>
+              </div>
+
+              <div class="mb-4">
+                <p class="text-muted small mb-2">Dominant Pollen Type</p>
+                <div id="dominantPollen" class="fs-6 fw-bold text-success">
+                  Loading...
+                </div>
+              </div>
+
+              <div class="mb-4">
+                <p class="text-muted small mb-2">Pollen Levels (grains/m³)</p>
+                <div id="pollenLevels" class="small">
+                  <div id="birchPollen" class="mb-2">🌳 Birch: <span class="text-warning">-</span></div>
+                  <div id="grassPollen" class="mb-2">🌾 Grass: <span class="text-warning">-</span></div>
+                  <div id="ragweedPollen" class="mb-2">🌿 Ragweed: <span class="text-warning">-</span></div>
+                  <div id="otherPollenNote" class="text-muted mt-2 font-italic small">Other pollen types available</div>
+                </div>
+              </div>
+              <hr />
+                    <span
+                      id="beeScoreText"
+                      class="text-dark fw-bold"
+                      style="font-size: 0.9rem"
+                      aria-hidden="true"
+                      >0%</span
+                    >
+                  </div>
+                </div>
+                <small
+                  class="text-muted mt-1"
+                  id="beeScoreDesc"
+                  aria-live="polite"
+                  >Loading...</small
+                >
+              </div>
+            </div>
+          </div>
+        </section>
+      </section>
+    </main>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script type="module" src="assets/js/details.js"></script>
+  </body>
+</html>

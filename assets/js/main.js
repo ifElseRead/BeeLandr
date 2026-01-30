@@ -64,7 +64,7 @@ export const app = {
     this.el.feedback = document.getElementById("feedback-msg");
     this.el.switchBtn = document.getElementById("switch-role-btn");
 
-    ElementById("save-btn");
+    this.el.saveBtn = document.getElementById("save-btn");
     this.el.clearBtn = document.getElementById("clear-btn");
     this.el.saveForm = document.getElementById("save-plot-form");
 

@@ -413,3 +413,118 @@ body.error-page-body::before {
     border-top: 5px solid var(--bee-yellow);
   }
 }
+/* =========================================================
+   Accessibility Enhancements
+========================================================= */
+
+/* Skip to main content link */
+a[href="#main-content"] {
+  position: absolute;
+  top: -40px;
+  left: 0;
+  z-index: 9999;
+  padding: 0.5rem 1rem;
+  border-radius: 0 0 4px 0;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+a[href="#main-content"]:focus {
+  top: 0;
+  outline: 3px solid var(--bee-yellow);
+  outline-offset: -3px;
+}
+
+/* Focus states for interactive elements */
+a:focus,
+button:focus,
+input:focus,
+select:focus,
+textarea:focus,
+[role="button"]:focus {
+  outline: 3px solid var(--bee-yellow);
+  outline-offset: 2px;
+}
+
+/* Remove default outline for better custom focus */
+button,
+a,
+input,
+select,
+textarea {
+  outline-color: var(--bee-yellow);
+}
+
+/* Improve color contrast for text */
+.text-warning {
+  color: #ffca28 !important;
+}
+
+/* Better focus indicator for buttons */
+.btn:focus-visible {
+  box-shadow: 0 0 0 3px var(--bee-yellow);
+  outline: none;
+}
+
+/* Ensure input labels are accessible */
+label {
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  display: block;
+}
+
+/* Better card focus states */
+.card:focus-within {
+  box-shadow: 0 0 0 2px var(--bee-yellow);
+}
+
+/* Ensure proper contrast for all text on dark backgrounds */
+body.bg-dark {
+  background-color: #1a1a1a;
+  color: #f8f9fa;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: more) {
+  :root {
+    --bee-yellow: #ffb300;
+    --text-light: #ffffff;
+  }
+
+  body {
+    background-color: #000;
+  }
+
+  .card {
+    border: 2px solid var(--bee-yellow) !important;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Large text support */
+@media (prefers-reduced-motion: no-preference) {
+  body {
+    font-size: 16px;
+    line-height: 1.6;
+  }
+}
+/* Visually hidden (but still in document outline for accessibility) */
+.visually-hidden {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border-width: 0 !important;
+}
